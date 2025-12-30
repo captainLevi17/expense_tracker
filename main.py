@@ -1,5 +1,5 @@
 # Imports
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout, QLabel, QHBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QDateEdit, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QVBoxLayout, QLabel, QHBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QDateEdit, QComboBox, QMessageBox, QHeaderView
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 from PyQt5.QtCore import QDate
 import sys
@@ -8,7 +8,7 @@ class ExpenseTracker(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Expense Tracker")
-        self.resize(550, 500)
+        self.resize(650, 600)
         
         self.date_box = QDateEdit()
         self.date_box.setDate(QDate.currentDate())
@@ -20,11 +20,12 @@ class ExpenseTracker(QWidget):
         self.add_button = QPushButton("Add Expense")
         self.delete_button = QPushButton("Delete Expense")
         self.add_button.clicked.connect(self.add_expense)
+        self.delete_button.clicked.connect(self.delete_expense)
 
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["ID"," Date", "Category", "Amount", "Description"])
-        
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 # Layout
         self.master_layout = QVBoxLayout()
         self.row1 = QHBoxLayout()
@@ -96,9 +97,20 @@ class ExpenseTracker(QWidget):
 
             self.load_table()
 
-        
- 
-        
+    def delete_expense(self):
+         selected_row = self.table.currentRow()
+         if selected_row < 0:
+             QMessageBox.warning(self, "Selection Error", "No expense selected.")
+             return
+
+         expense_id = self.table.item(selected_row, 0).text()
+
+         query = QSqlQuery()
+         query.prepare("DELETE FROM expenses WHERE id = ?")
+         query.addBindValue(expense_id)
+         query.exec_()
+
+         self.load_table()
 
         
 
