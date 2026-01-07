@@ -73,15 +73,18 @@ class ExpenseTracker(QWidget):
                 row += 1
 
     def add_expense(self):
+            #Capture current data from the fields
             date = self.date_box.date().toString("yyyy-MM-dd")
             category = self.dropdown.currentText()
             amount = self.amount.text()
             description = self.description.text()
 
+            #Verify that the amount is not empty
             if not amount:
                 QMessageBox.warning(self, "Input Error", "Amount cannot be empty.")
                 return
 
+            #Insert values into the table/database
             query = QSqlQuery()
             query.prepare("INSERT INTO expenses (date, category, amount, description) VALUES (?, ?, ?, ?)")
             query.addBindValue(date)
@@ -90,11 +93,13 @@ class ExpenseTracker(QWidget):
             query.addBindValue(description)
             query.exec_()
 
+            #Clear values in the UI
             self.date_box.setDate(QDate.currentDate())
             self.dropdown.setCurrentIndex(0)
             self.amount.clear()
             self.description.clear()
 
+            #Reload the table
             self.load_table()
 
     def delete_expense(self):
@@ -102,9 +107,14 @@ class ExpenseTracker(QWidget):
          if selected_row < 0:
              QMessageBox.warning(self, "Selection Error", "No expense selected.")
              return
-
+         
          expense_id = self.table.item(selected_row, 0).text()
 
+         reply = QMessageBox.question(self, 'Delete Confirmation', 'Are you sure you want to delete the selected expense?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+         if reply == QMessageBox.No:
+             return
+         
          query = QSqlQuery()
          query.prepare("DELETE FROM expenses WHERE id = ?")
          query.addBindValue(expense_id)
